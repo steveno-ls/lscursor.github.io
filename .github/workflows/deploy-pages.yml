@@ -6,6 +6,10 @@
 #   → Repo Settings → Secrets and variables → Actions → New repository secret
 #   → Name: GH_PACKAGES_TOKEN, Secret: paste the token
 # Use an account that is allowed to install @lightspeed/* from GitHub Packages (often your work GitHub user).
+#
+# IMPORTANT: Put GH_PACKAGES_TOKEN under "Repository secrets" (same page as Actions secrets),
+# not only under an Environment (e.g. github-pages). The *build* job does not use `environment:`,
+# so environment-only secrets are invisible there and `npm ci` will fail with 401.
 
 name: Deploy to GitHub Pages
 
@@ -34,11 +38,25 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Ensure GH_PACKAGES_TOKEN is available to this job
+        env:
+          NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          if [ -z "${NPM_TOKEN}" ]; then
+            echo "::error::GH_PACKAGES_TOKEN is missing or empty for the build job."
+            echo "Fix: Repo → Settings → Secrets and variables → Actions → Repository secrets → add GH_PACKAGES_TOKEN."
+            echo "If you only added it under Environments → github-pages, duplicate it as a repository secret (or the build step cannot read it)."
+            exit 1
+          fi
+
       - name: Authenticate npm for GitHub Packages (@lightspeed)
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN }}" >> .npmrc
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
