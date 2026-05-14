@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AddUserWizard } from './AddUserWizard'
+import { UserProfilePage } from './UserProfilePage'
 import {
   Button,
   Card,
@@ -105,6 +106,7 @@ function formatMultiFilterLabel(
 }
 
 export function UsersPage() {
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [appsFilter, setAppsFilter] = useState<string[]>([])
@@ -251,6 +253,15 @@ export function UsersPage() {
     )
   }
 
+  const profileUser = profileUserId ? USERS.find((u) => u.id === profileUserId) : undefined
+  if (profileUser) {
+    return (
+      <div className="flex w-full justify-center">
+        <UserProfilePage user={profileUser} onBack={() => setProfileUserId(null)} />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6">
       <div className="flex w-full flex-row items-center justify-between gap-4">
@@ -272,6 +283,7 @@ export function UsersPage() {
           ariaLabel="Users"
           size="default"
           striped
+          interactive
           headSlot={tableHeadSlot}
           customClasses={{
             headSlot: ['flex', 'flex-col', 'gap-2', 'p-4'],
@@ -290,15 +302,22 @@ export function UsersPage() {
             {rows.map((row) => (
               <TableRow key={row.id} rowKey={row.id}>
                 <TableCell>
-                  <UserItem
-                    userName={row.name}
-                    size="small"
-                    customClasses={{
-                      content: ['typography-body-xs', 'text-neutral-default'],
-                    }}
+                  <button
+                    type="button"
+                    className="w-full cursor-pointer rounded-md text-left outline-none ring-border-go-default focus-visible:ring-2"
+                    onClick={() => setProfileUserId(row.id)}
                   >
-                    {row.subtitle}
-                  </UserItem>
+                    <UserItem
+                      userName={row.name}
+                      size="small"
+                      customClasses={{
+                        title: ['font-semibold'],
+                        content: ['typography-body-xs', 'text-neutral-default'],
+                      }}
+                    >
+                      {row.subtitle}
+                    </UserItem>
+                  </button>
                 </TableCell>
                 <TableCell customClasses={{ cell: ['typography-body-sm', 'text-neutral-default'] }}>
                   {row.apps}
