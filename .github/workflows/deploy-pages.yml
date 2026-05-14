@@ -10,6 +10,7 @@
 # IMPORTANT: Put GH_PACKAGES_TOKEN under "Repository secrets" (same page as Actions secrets),
 # not only under an Environment (e.g. github-pages). The *build* job does not use `environment:`,
 # so environment-only secrets are invisible there and `npm ci` will fail with 401.
+# If npm ci still returns 401 after auth is configured, confirm the PAT user can install @lightspeed/* (org package access).
 
 name: Deploy to GitHub Pages
 
@@ -50,9 +51,16 @@ jobs:
           fi
 
       - name: Authenticate npm for GitHub Packages (@lightspeed)
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN }}" >> .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          # Tarball GETs need always-auth; token via env avoids shell mangling special chars.
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" >> .npmrc
+          printf '%s\n' 'always-auth=true' >> .npmrc
 
       - name: Install dependencies
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: npm ci
 
       - name: Production build
