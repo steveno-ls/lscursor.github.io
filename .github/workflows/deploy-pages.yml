@@ -50,13 +50,20 @@ jobs:
             exit 1
           fi
 
-      - name: Authenticate npm for GitHub Packages (@lightspeed)
+      - name: Write .npmrc for GitHub Packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
-          # Tarball GETs need always-auth; token via env avoids shell mangling special chars.
-          printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" >> .npmrc
-          printf '%s\n' 'always-auth=true' >> .npmrc
+          # Replace the committed .npmrc: npm must see registry + token + always-auth together
+          # or tarball GETs return 401. Trailing slash matches GitHub Packages docs.
+          {
+            printf '%s\n' '@lightspeed:registry=https://npm.pkg.github.com/'
+            printf '%s\n' "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}"
+            printf '%s\n' 'always-auth=true'
+          } > .npmrc
+
+      - name: Sanity-check .npmrc (token redacted)
+        run: sed 's/\(_authToken=\).*/\1***redacted***/' .npmrc
 
       - name: Install dependencies
         env:
