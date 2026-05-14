@@ -27,7 +27,7 @@ export type AddUserWizardProps = {
 
 type WizardStep = 'access' | 'profile' | 'success'
 
-type AccessKey = 'staff' | 'site_lead' | 'area_lead' | 'admin'
+type AccessKey = 'default' | 'site_lead' | 'area_lead' | 'admin'
 
 const ACCESS_OPTIONS: {
   value: AccessKey
@@ -36,8 +36,8 @@ const ACCESS_OPTIONS: {
   defaultBadge?: boolean
 }[] = [
   {
-    value: 'staff',
-    title: 'Staff',
+    value: 'default',
+    title: 'Default',
     description: 'Can update their profile details and password.',
     defaultBadge: true,
   },
@@ -45,24 +45,24 @@ const ACCESS_OPTIONS: {
     value: 'site_lead',
     title: 'Site lead',
     description:
-      'Can manage other Staff with the same assigned apps, roles, and locations.',
+      'Can manage Default users and give account and product roles below them, within their given locations and products below.',
   },
   {
     value: 'area_lead',
     title: 'Area lead',
     description:
-      'Can manage other Site leads and Staff with the same assigned apps and roles in any location.',
+      'Can manage Site leads and Default users and give account and product roles below them across any location, within their given products below.',
   },
   {
     value: 'admin',
     title: 'Admin',
     description:
-      'Can manage other Admins, Area leads, Site leads and Staff and manage any app, role, and location.',
+      'Can manage all roles and users across any location and products below, except Owners.',
   },
 ]
 
 const ACCESS_TITLE: Record<AccessKey, string> = {
-  staff: 'Staff',
+  default: 'Default',
   site_lead: 'Site lead',
   area_lead: 'Area lead',
   admin: 'Admin',
@@ -107,6 +107,23 @@ function createDefaultApps(): AppRow[] {
       locations: [],
     },
   ]
+}
+
+/** Same product tile image for all app rows (Retail X-Series artwork). */
+const APP_ROW_THUMB_SRC = `${import.meta.env.BASE_URL}icons/retail-app.png`
+
+function AppRowThumbnail() {
+  return (
+    <img
+      src={APP_ROW_THUMB_SRC}
+      alt=""
+      width={56}
+      height={56}
+      className="size-14 shrink-0 rounded-lg object-cover"
+      decoding="async"
+      draggable={false}
+    />
+  )
 }
 
 function usernameShowsValidIndicator(value: string): boolean {
@@ -198,7 +215,7 @@ const APP_ROW_CARD_CLASSES = {
 
 export function AddUserWizard({ onClose }: AddUserWizardProps) {
   const [step, setStep] = useState<WizardStep>('access')
-  const [accessKey, setAccessKey] = useState<AccessKey>('staff')
+  const [accessKey, setAccessKey] = useState<AccessKey>('default')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -212,7 +229,7 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
 
   const resetWizard = () => {
     setStep('access')
-    setAccessKey('staff')
+    setAccessKey('default')
     setFirstName('')
     setLastName('')
     setEmail('')
@@ -319,16 +336,16 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
               <section className="flex flex-col gap-8">
                 <div className="flex flex-col gap-1.5 text-neutral-default">
                   <h2 id="add-user-assign-access-heading" className="text-heading-6">
-                    Assign account access
+                  How do you want this user to manage others?
                   </h2>
                   <p className="typography-body-sm">
-                    Choose what account access you want to give this user.{' '}
+                  Choose what account role you want to give this user.{' '}
                     <Link
                       href="https://design.lightspeedhq.com"
                       target="_blank"
                       rel="noreferrer"
                       appearance="primary"
-                      size="small"
+                      size="medium"
                     >
                       Learn more about account access.
                     </Link>
@@ -411,10 +428,10 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
               >
                 <div className="flex flex-col gap-1.5 text-neutral-default">
                   <h2 id="add-user-assign-apps-heading" className="text-heading-6">
-                    Assign and configure apps
+                  What products does this user need to use?
                   </h2>
                   <p className="typography-body-sm">
-                    Select the apps this user can access and configure their settings for each.
+                  Assign the products this user can use and configure each one.
                   </p>
                 </div>
 
@@ -435,10 +452,7 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                       }}
                     >
                       <div className="flex flex-wrap items-center gap-4">
-                        <div
-                          className="size-14 shrink-0 rounded-lg bg-neutral-backdrop"
-                          aria-hidden
-                        />
+                        <AppRowThumbnail />
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
                           <p className="typography-body-md-emphasized text-neutral-default">
                             {app.shop}
@@ -602,6 +616,16 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                 <Card
                   appearance="neutral"
                   size="medium"
+                  customClasses={{
+                    content: [
+                      'flex',
+                      'min-w-0',
+                      'flex-row',
+                      'items-center',
+                      'justify-between',
+                      'gap-4',
+                    ],
+                  }}
                 >
                     <MediaLeftBlockLayout
                       size="large"
@@ -617,6 +641,7 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                       size="medium"
                       prefixSlot={<IconUpload20 aria-hidden />}
                       onClick={() => undefined}
+                      customClasses={{ container: ['shrink-0'] }}
                     >
                       Upload profile photo
                     </Button>
@@ -807,10 +832,7 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                       size="medium"
                     >
                       <div className="flex flex-wrap items-center gap-4">
-                        <div
-                          className="size-14 shrink-0 rounded-lg bg-neutral-backdrop"
-                          aria-hidden
-                        />
+                        <AppRowThumbnail />
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
                           <p className="typography-body-md-emphasized text-neutral-default">{app.shop}</p>
                           <p className="typography-body-sm text-neutral-default">{app.productLine}</p>
