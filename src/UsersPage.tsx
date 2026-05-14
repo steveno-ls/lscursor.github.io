@@ -4,6 +4,8 @@ import {
   Button,
   Card,
   CardStack,
+  CheckMark,
+  DropdownListItem,
   FilterButton,
   FilterList,
   IconMagnifyingGlass20,
@@ -91,17 +93,30 @@ const ACCESS_FILTER_OPTIONS = [
   { value: 'Area Lead', label: 'Area Lead' },
 ]
 
+function formatMultiFilterLabel(
+  base: string,
+  selected: string[],
+  options: { value: string; label: string }[],
+): string {
+  if (selected.length === 0) return base
+  if (selected.length === 1) {
+    const opt = options.find((o) => o.value === selected[0])
+    return `${base}: ${opt?.label ?? selected[0]}`
+  }
+  return `${base}: multiple`
+}
+
 export function UsersPage() {
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [appsFilter, setAppsFilter] = useState<string | undefined>()
-  const [accessFilter, setAccessFilter] = useState<string | undefined>()
+  const [appsFilter, setAppsFilter] = useState<string[]>([])
+  const [accessFilter, setAccessFilter] = useState<string[]>([])
   const [enabledById, setEnabledById] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(USERS.map((u) => [u.id, u.enabled])),
   )
 
-  const appsLabel = appsFilter ? `Apps: ${appsFilter}` : 'Apps'
-  const accessLabel = accessFilter ? `Account access: ${accessFilter}` : 'Account access'
+  const appsLabel = formatMultiFilterLabel('Apps', appsFilter, APP_FILTER_OPTIONS)
+  const accessLabel = formatMultiFilterLabel('Account access', accessFilter, ACCESS_FILTER_OPTIONS)
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -109,8 +124,12 @@ export function UsersPage() {
       if (q && !u.name.toLowerCase().includes(q) && !u.subtitle.toLowerCase().includes(q)) {
         return false
       }
-      if (appsFilter && !u.apps.includes(appsFilter)) return false
-      if (accessFilter && u.accountAccess !== accessFilter) return false
+      if (appsFilter.length > 0 && !appsFilter.some((app) => u.apps.includes(app))) {
+        return false
+      }
+      if (accessFilter.length > 0 && !accessFilter.includes(u.accountAccess)) {
+        return false
+      }
       return true
     })
   }, [query, appsFilter, accessFilter])
@@ -145,16 +164,40 @@ export function UsersPage() {
           labelSlot={appsLabel}
           displayMode="value"
           clearable
-          onClear={() => setAppsFilter(undefined)}
-          onChange={(value) =>
-            setAppsFilter(value == null ? undefined : Array.isArray(value) ? value[0] : value)
-          }
+          multiple
+          value={appsFilter}
+          counterSlot={appsFilter.length > 1 ? `(${appsFilter.length})` : undefined}
+          onClear={() => setAppsFilter([])}
+          onChange={(value) => {
+            if (value == null || (Array.isArray(value) && value.length === 0)) {
+              setAppsFilter([])
+              return
+            }
+            setAppsFilter(Array.isArray(value) ? value : [value])
+          }}
         >
           <FilterList
+            multiple
+            showSelectAll
+            selectAllLabel="Select all"
             options={APP_FILTER_OPTIONS.map((o) => ({
               value: o.value,
               label: o.label,
             }))}
+            renderItem={({ item, state, props }) => (
+              <DropdownListItem
+                {...props}
+                key={item.value}
+                value={item.value}
+                highlighted={state.highlighted}
+                disabled={state.disabled}
+                prefixSlot={
+                  <CheckMark checked={state.selected} indeterminate={state.indeterminate} />
+                }
+              >
+                <span className="text-neutral-default">{item.label}</span>
+              </DropdownListItem>
+            )}
           />
         </FilterButton>
         <FilterButton
@@ -162,16 +205,40 @@ export function UsersPage() {
           labelSlot={accessLabel}
           displayMode="value"
           clearable
-          onClear={() => setAccessFilter(undefined)}
-          onChange={(value) =>
-            setAccessFilter(value == null ? undefined : Array.isArray(value) ? value[0] : value)
-          }
+          multiple
+          value={accessFilter}
+          counterSlot={accessFilter.length > 1 ? `(${accessFilter.length})` : undefined}
+          onClear={() => setAccessFilter([])}
+          onChange={(value) => {
+            if (value == null || (Array.isArray(value) && value.length === 0)) {
+              setAccessFilter([])
+              return
+            }
+            setAccessFilter(Array.isArray(value) ? value : [value])
+          }}
         >
           <FilterList
+            multiple
+            showSelectAll
+            selectAllLabel="Select all"
             options={ACCESS_FILTER_OPTIONS.map((o) => ({
               value: o.value,
               label: o.label,
             }))}
+            renderItem={({ item, state, props }) => (
+              <DropdownListItem
+                {...props}
+                key={item.value}
+                value={item.value}
+                highlighted={state.highlighted}
+                disabled={state.disabled}
+                prefixSlot={
+                  <CheckMark checked={state.selected} indeterminate={state.indeterminate} />
+                }
+              >
+                <span className="text-neutral-default">{item.label}</span>
+              </DropdownListItem>
+            )}
           />
         </FilterButton>
       </Card>
