@@ -1,7 +1,11 @@
 # Build Vite output and deploy to GitHub Pages.
 # In repo Settings → Pages: set Source to "GitHub Actions" (not "Deploy from branch").
-# For @lightspeed packages on npm.pkg.github.com, add repo secret GH_PACKAGES_TOKEN
-# (classic PAT with read:packages for the org/user that owns the package).
+# For @lightspeed packages on npm.pkg.github.com, add repo secret GH_PACKAGES_TOKEN:
+#   GitHub → your avatar → Settings → Developer settings → Personal access tokens
+#   → Generate new token (classic) → enable scope "read:packages" → create, copy value
+#   → Repo Settings → Secrets and variables → Actions → New repository secret
+#   → Name: GH_PACKAGES_TOKEN, Secret: paste the token
+# Use an account that is allowed to install @lightspeed/* from GitHub Packages (often your work GitHub user).
 
 name: Deploy to GitHub Pages
 
