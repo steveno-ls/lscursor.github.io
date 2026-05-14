@@ -77,27 +77,27 @@ function createDefaultApps(): AppRow[] {
   return [
     {
       id: 'retail',
-      shop: '',
+      shop: 'The Continental',
       productLine: 'Retail (X-Series)',
       assigned: false,
-      role: 'cashier',
-      location: 'ponsonby',
+      role: '',
+      location: '',
     },
     {
       id: 'ecom',
-      shop: '',
+      shop: 'The Continental',
       productLine: 'eCom (E-Series)',
       assigned: false,
-      role: 'cashier',
-      location: 'ponsonby',
+      role: '',
+      location: '',
     },
     {
       id: 'wholesale',
-      shop: '',
+      shop: 'The Continental',
       productLine: 'Wholesale',
       assigned: false,
-      role: 'buyer',
-      location: 'cbd',
+      role: '',
+      location: '',
     },
   ]
 }
@@ -132,8 +132,8 @@ const ROLE_OPTIONS = [
 
 const LOCATION_OPTIONS = [
   { value: 'ponsonby', label: 'Ponsonby' },
-  { value: 'cbd', label: 'CBD' },
-  { value: 'online', label: 'Online' },
+  { value: 'New Market', label: 'New Market' },
+  { value: 'Albany', label: 'Albany' },
 ]
 
 /** Each app row is a Helios `Card`; padding lives on `content` so children stay in `data-part="content"`. */
@@ -183,6 +183,10 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
   }
 
   const assignedApps = apps.filter((a) => a.assigned)
+
+  const accessStepCanContinue =
+    assignedApps.length > 0 &&
+    assignedApps.every((a) => a.role.trim() !== '' && a.location.trim() !== '')
 
   return (
     <div
@@ -367,7 +371,9 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                             onClick={() =>
                               setApps((prev) =>
                                 prev.map((a) =>
-                                  a.id === app.id ? { ...a, assigned: false } : a,
+                                  a.id === app.id
+                                    ? { ...a, assigned: false, role: '', location: '' }
+                                    : a,
                                 ),
                               )
                             }
@@ -383,7 +389,9 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                             onClick={() =>
                               setApps((prev) =>
                                 prev.map((a) =>
-                                  a.id === app.id ? { ...a, assigned: true } : a,
+                                  a.id === app.id
+                                    ? { ...a, assigned: true, role: '', location: '' }
+                                    : a,
                                 ),
                               )
                             }
@@ -402,12 +410,12 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                                 size="medium"
                                 labelLayout="outside"
                                 options={ROLE_OPTIONS}
-                                value={app.role}
+                                value={app.role === '' ? undefined : app.role}
                                 onChange={(opt) =>
                                   setApps((prev) =>
                                     prev.map((a) =>
                                       a.id === app.id
-                                        ? { ...a, role: opt?.value ?? a.role }
+                                        ? { ...a, role: opt?.value ?? '' }
                                         : a,
                                     ),
                                   )
@@ -421,12 +429,12 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                                 size="medium"
                                 labelLayout="outside"
                                 options={LOCATION_OPTIONS}
-                                value={app.location}
+                                value={app.location === '' ? undefined : app.location}
                                 onChange={(opt) =>
                                   setApps((prev) =>
                                     prev.map((a) =>
                                       a.id === app.id
-                                        ? { ...a, location: opt?.value ?? a.location }
+                                        ? { ...a, location: opt?.value ?? '' }
                                         : a,
                                     ),
                                   )
@@ -455,6 +463,7 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                   type="button"
                   appearance="primary"
                   size="medium"
+                  disabled={!accessStepCanContinue}
                   onClick={() => setStep('profile')}
                   customClasses={{ container: ['min-w-0', 'w-full', 'flex-1', 'basis-0'] }}
                 >
@@ -531,7 +540,13 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                     size="default"
                     layout="fill"
                     value={accountMode}
-                    onChange={(v) => setAccountMode((v as 'invite' | 'credentials') ?? 'invite')}
+                    onChange={(v) => {
+                      const next = (v as 'invite' | 'credentials') ?? 'invite'
+                      setAccountMode(next)
+                      if (next === 'credentials') {
+                        setPassword(generateTemporaryPassword())
+                      }
+                    }}
                   >
                     <SegmentedControlItem value="invite">Invite with an email</SegmentedControlItem>
                     <SegmentedControlItem value="credentials">
@@ -584,10 +599,10 @@ export function AddUserWizard({ onClose }: AddUserWizardProps) {
                           >
                             <Input
                               size="medium"
-                              type="password"
+                              type="text"
                               value={password}
                               onChange={setPassword}
-                              autocomplete="new-password"
+                              autocomplete="off"
                             />
                           </Field>
                         </div>

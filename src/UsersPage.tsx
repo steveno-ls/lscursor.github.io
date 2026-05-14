@@ -3,14 +3,12 @@ import { AddUserWizard } from './AddUserWizard'
 import {
   Button,
   Card,
-  CardStack,
   CheckMark,
   DropdownListItem,
   FilterButton,
   FilterList,
   IconMagnifyingGlass20,
   Input,
-  MediaLeftActionCardLayout,
   Switch,
   Table,
   TableBody,
@@ -254,43 +252,22 @@ export function UsersPage() {
   }
 
   return (
-    <CardStack
-      customClasses={{
-        container: ['mx-auto', 'flex', 'w-full', 'max-w-[1100px]', 'flex-col', 'gap-6'],
-      }}
-    >
-      <MediaLeftActionCardLayout
-        size="medium"
-        appearance="default"
-        actionsPosition="right"
-        titleSlot="Users"
-        subtitleSlot="Manage users across your account and all Lightspeed apps."
-        customClasses={{
-          root: ['!border-b-0'],
-          title: ['text-heading-8', 'text-neutral-default'],
-          subtitle: ['typography-body-md', 'text-neutral-soft'],
-          contentBlock: ['justify-center', 'items-center'],
-          actions: ['w-fit', 'min-w-max', 'shrink-0', 'justify-center', 'items-end'],
-        }}
-        actionsSlot={
-          <Button
-            appearance="primary"
-            size="medium"
-            onClick={() => setAddUserOpen(true)}
-            customClasses={{ container: ['w-fit', 'whitespace-nowrap'] }}
-          >
-            Add user
-          </Button>
-        }
-      />
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6">
+      <div className="flex w-full flex-row items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h1 className='typography-heading-lg'>Users</h1>
+          <p className='typography-body-md'>Manage users across your account and all Lightspeed apps.</p>
+        </div>
+        <Button
+          appearance="primary"
+          size="medium"
+          onClick={() => setAddUserOpen(true)}
+          customClasses={{ container: ['shrink-0', 'whitespace-nowrap'] }}
+        >
+          Add user
+        </Button>
+      </div>
 
-      <Card
-        appearance="neutral"
-        size="medium"
-        customClasses={{
-          container: ['border', 'border-neutral-soft'],
-        }}
-      >
         <Table
           ariaLabel="Users"
           size="default"
@@ -302,10 +279,10 @@ export function UsersPage() {
         >
           <TableHead>
             <TableRow>
-              <TableHeadCell>Name</TableHeadCell>
-              <TableHeadCell>Apps</TableHeadCell>
-              <TableHeadCell>Account access</TableHeadCell>
-              <TableHeadCell>Last active</TableHeadCell>
+              <TableHeadCell align="start">Name</TableHeadCell>
+              <TableHeadCell align="start">Apps</TableHeadCell>
+              <TableHeadCell align="start">Account access</TableHeadCell>
+              <TableHeadCell align="start">Last active</TableHeadCell>
               <TableHeadCell align="end">Enabled</TableHeadCell>
             </TableRow>
           </TableHead>
@@ -348,7 +325,6 @@ export function UsersPage() {
             ))}
           </TableBody>
         </Table>
-      </Card>
-    </CardStack>
+    </div>
   )
 }
